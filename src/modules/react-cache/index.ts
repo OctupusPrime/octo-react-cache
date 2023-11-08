@@ -1,2 +1,4 @@
 export * from "./lib/storage";
-export * as ContextProvider from "./ContextProvider";
+export * from "./lib/storage-providers";
+
+export * from "./ContextProvider";

@@ -1,21 +1,36 @@
 import { type Context, createContext, useContext, type ReactNode } from "react";
-import { type StoragePresister } from "./lib/storage";
-import type { DBSchema } from "./types";
+import type {
+  TableStorageSchema,
+  TableBasedStorage,
+  KeyBasedStorage,
+  CacheTimeStorageSchema,
+} from "./lib/storage";
 
-interface CacheContextProps<DB, DBTypes extends DBSchema | unknown> {
-  presistor: StoragePresister<DB, DBTypes>;
+interface CacheContextProps<
+  TableStorage,
+  TableStorageTypes extends TableStorageSchema | unknown,
+  KeyStorage
+> {
+  presistor?: {
+    storage: TableBasedStorage<TableStorage, TableStorageTypes>;
+    cacheTimeStorage: KeyBasedStorage<KeyStorage, CacheTimeStorageSchema>;
+  };
 }
 
 const createCacheContextInstance = <
-  DB,
-  DBTypes extends DBSchema | unknown
+  TableStorage,
+  TableStorageTypes extends TableStorageSchema | unknown,
+  KeyStorage
 >() => {
-  return createContext<CacheContextProps<DB, DBTypes> | null>(null);
+  return createContext<CacheContextProps<
+    TableStorage,
+    TableStorageTypes,
+    KeyStorage
+  > | null>(null);
 };
 
 const createUseCacheContext = <T,>(Context: Context<T>) => {
   return () => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const ctx = useContext(Context);
 
     if (ctx === null) {
@@ -34,10 +49,18 @@ const createCacheProvider = <T,>(Context: Context<T>, value: T) => {
   return CacheProvider;
 };
 
-export const generateCacheProvider = <DB, DBTypes extends DBSchema | unknown>(
-  props: CacheContextProps<DB, DBTypes>
+export const generateContextProvider = <
+  TableStorage,
+  TableStorageTypes extends TableStorageSchema | unknown,
+  KeyStorage
+>(
+  props: CacheContextProps<TableStorage, TableStorageTypes, KeyStorage>
 ) => {
-  const CacheContext = createCacheContextInstance<DB, DBTypes>();
+  const CacheContext = createCacheContextInstance<
+    TableStorage,
+    TableStorageTypes,
+    KeyStorage
+  >();
   const useCache = createUseCacheContext(CacheContext);
   const CacheProvider = createCacheProvider(CacheContext, props);
 

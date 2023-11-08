@@ -4,7 +4,7 @@ function App() {
   const { presistor } = useCache();
 
   const handleAddItem = () => {
-    presistor.add("articles", {
+    presistor?.storage.add("articles", {
       title: "Article 1",
       date: new Date("2019-01-01"),
       body: "…",
@@ -13,17 +13,17 @@ function App() {
   };
 
   const getItem = async () => {
-    const item = await presistor.get("articles", "id", 1);
+    const item = await presistor?.storage.get("articles", "id", 1);
     console.log(item);
   };
 
   const handleDeleteItem = async () => {
-    await presistor.delete("articles", "id", 1);
+    await presistor?.storage.delete("articles", "id", 1);
     console.log("deleted");
   };
 
   const handleUpdateItem = async () => {
-    const updatedItem = await presistor.update("articles", "id", 1, {
+    const updatedItem = await presistor?.storage.update("articles", "id", 1, {
       title: "Article 1 updated",
     });
     console.log(updatedItem);

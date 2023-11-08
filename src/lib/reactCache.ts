@@ -1,12 +1,16 @@
 import {
-  createCacheStoragePresistor,
-  ContextProvider,
+  type CacheTimeStorageSchema,
+  type TableStorageSchema,
+  createKeyBasedStorage,
+  createTableBasedStorage,
+  generateContextProvider,
+  LocalStorageProvider,
+  IndexDBStorageProvider,
 } from "@/modules/react-cache";
-import type { DBSchema } from "@/modules/react-cache/types";
 
-import { IDBInstance, initStorage } from "./idbCacheStorage";
+import { type IDBInstance, initIdbStorage } from "./idbCacheStorage";
 
-export interface MyDb extends DBSchema {
+export interface CacheStorage extends TableStorageSchema {
   articles: {
     title: string;
     date: Date;
@@ -18,35 +22,21 @@ export interface MyDb extends DBSchema {
   };
 }
 
-const presistor = createCacheStoragePresistor<IDBInstance, MyDb>(initStorage, {
-  get: (db, storageName, keyName, keyValue) => {
-    return db.get(storageName as any, keyValue);
+const cacheStorage = createTableBasedStorage<IDBInstance, CacheStorage>(
+  initIdbStorage,
+  IndexDBStorageProvider.createTableBasedStorageMethods()
+);
+
+const cacheTimeStorage = createKeyBasedStorage<Storage, CacheTimeStorageSchema>(
+  async () => localStorage,
+  LocalStorageProvider.createKeyBasedStorageMethods("cache-items-time")
+);
+
+const { useCache, CacheProvider } = generateContextProvider({
+  presistor: {
+    storage: cacheStorage,
+    cacheTimeStorage,
   },
-  add: async (db, storageName, item) => {
-    return await db.add(storageName as any, item);
-  },
-  update: async (db, storageName, keyName, keyValue, value) => {
-    const item = await db.get(storageName as any, keyValue);
-
-    if (!item) throw new Error("item to update dont exist");
-
-    const updatedItem = {
-      ...item,
-      ...value,
-    };
-
-    await db.put(storageName as any, updatedItem);
-
-    return updatedItem;
-  },
-  delete: async (db, storageName, keyName, keyValue) => {
-    await db.delete(storageName as any, keyValue);
-    return;
-  },
-});
-
-const { useCache, CacheProvider } = ContextProvider.generateCacheProvider({
-  presistor,
 });
 
 export { useCache, CacheProvider };
